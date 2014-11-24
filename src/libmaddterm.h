@@ -29,6 +29,7 @@
 
 #include <inttypes.h>
 #include <sys/types.h>
+#include <stdlib.h>
 
 typedef struct
 {
@@ -76,5 +77,10 @@ void mtClear(MTCONTEXT *ctx);
  * Put a character in the terminal.
  */
 void mtPutChar(MTCONTEXT *ctx, char c);
+
+/**
+ * Write a string to the terminal. Handles all the control sequences too.
+ */
+void mtWrite(MTCONTEXT *ctx, const char *data, size_t size);
 
 #endif
