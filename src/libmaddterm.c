@@ -57,6 +57,7 @@ void mtClear(MTCONTEXT *ctx)
 	ctx->curY = 0;
 	ctx->curColor = 0x07;
 	ctx->attr = 0;
+	ctx->ctllen = 0;
 	
 	int i;
 	for (i=0; i<ctx->width * ctx->height; i++)
@@ -111,9 +112,17 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 		{
 			continue;
 		}
-		else
+		else if (ctx->ctllen == 0)
 		{
-			mtPutChar(ctx, c);
+			if (c == '\e')
+			{
+				strcpy(ctx->ctlbuf, "\e");
+				ctx->ctllen = 1;
+			}
+			else
+			{
+				mtPutChar(ctx, c);
+			};
 		};
 	};
 };
