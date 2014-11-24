@@ -46,5 +46,57 @@ MTCONTEXT *mtCreateContext(MTPARAMS *params)
 		exit(0);
 	};
 	
+	mtClear(ctx);
+	
 	return ctx;
+};
+
+void mtClear(MTCONTEXT *ctx)
+{
+	ctx->curX = 0;
+	ctx->curY = 0;
+	ctx->curColor = 0x07;
+	ctx->attr = 0;
+	
+	int i;
+	for (i=0; i<ctx->width * ctx->height; i++)
+	{
+		ctx->matrix[i*2+0] = 0;
+		ctx->matrix[i*2+1] = 0x07;
+	};
+};
+
+void mtScrollPRIV(MTCONTEXT *ctx)
+{
+	int i;
+	for (i=0; i<2*ctx->width*(ctx->height-1); i++)
+	{
+		ctx->matrix[i-ctx->width] = ctx->matrix[i];
+	};
+	
+	for (i=ctx->width*(ctx->height-1); i<ctx->width*ctx->height; i++)
+	{
+		ctx->matrix[2*i+0] = 0;
+		ctx->matrix[2*i+1] = ctx->curColor;
+	};
+};
+
+void mtPutChar(MTCONTEXT *ctx, char c)
+{
+	int index = ctx->curY * ctx->width + ctx->curX;
+	ctx->matrix[2*index+0] = c;
+	ctx->matrix[2*index+0] = ctx->curColor;
+	
+	ctx->curX++;
+	if (ctx->curX == ctx->width)
+	{
+		ctx->curX = 0;
+		ctx->curY++;
+		
+		if (ctx->curY == ctx->height)
+		{
+			ctx->curY--;
+			mtScrollPRIV(ctx);
+		}
+	}
 };

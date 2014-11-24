@@ -56,6 +56,9 @@ typedef struct
 	uint8_t *matrix;
 	int fd;			// terminal FD
 	pid_t pid;		// child PID
+	int curX, curY;
+	uint8_t curColor;	// current bg/fg.
+	uint32_t attr;		// attributes.
 } MTCONTEXT;
 
 /**
@@ -63,5 +66,15 @@ typedef struct
  * You may delete the params structure after a call to this function.
  */
 MTCONTEXT *mtCreateContext(MTPARAMS *params);
+
+/**
+ * Clear the terminal, initialising it to the default state.
+ */
+void mtClear(MTCONTEXT *ctx);
+
+/**
+ * Put a character in the terminal.
+ */
+void mtPutChar(MTCONTEXT *ctx, char c);
 
 #endif
