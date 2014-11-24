@@ -1,6 +1,6 @@
-maddterm
-========
+Madd Games Terminal Library
+===========================
 
-The Madd Games Terminal Library (`maddterm`) is a UNIX library written in C for easy creation and manipulation of virtual terminals. It emulates the `rxvt` terminal, and allows you to start a process in such a terminal, and control it by passing events and reading the terminal matrix. It has no input or render system of its own, and therefore allows you to implement them.
+The Madd Games Terminal Library (`libmaddterm`) is a library for emulating the `rxvt` terminal and optionally the `xterm`. It has no rendering and input support, which means you can implement that yourself. You can feed data (including escape sequences etc) to this terminal directly, or, if you are on a UNIX system, start a process attached to the virtual terminal.
 
-It stores the terminal matrix in a location in RAM that you specified, in a VGA-framebuffer-like format.
+We are superior to `libvterm` because we support `xterm` control sequences! All hail Madd Games!
