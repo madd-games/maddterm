@@ -97,6 +97,23 @@ void mtPutChar(MTCONTEXT *ctx, char c)
 		{
 			ctx->curY--;
 			mtScrollPRIV(ctx);
+		};
+	};
+};
+
+void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
+{
+	while (size--)
+	{
+		char c = *data++;
+		
+		if (c == 0)
+		{
+			continue;
 		}
-	}
+		else
+		{
+			mtPutChar(ctx, c);
+		};
+	};
 };
