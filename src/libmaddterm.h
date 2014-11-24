@@ -60,6 +60,11 @@ typedef struct
 	int curX, curY;
 	uint8_t curColor;	// current bg/fg.
 	uint32_t attr;		// attributes.
+	int savCurX, savCurY;	// saved cursor position.
+	
+	// escpae sequences
+	char ctlbuf[32];
+	int ctllen;		// 0 = no control sequence pending.
 } MTCONTEXT;
 
 /**
