@@ -112,6 +112,18 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 		{
 			continue;
 		}
+		else if ((ctx->ctllen == 1) && (c == '7'))
+		{
+			ctx->savCurX = ctx->curX;
+			ctx->savCurY = ctx->curY;
+			ctx->ctllen = 0;
+		}
+		else if ((ctx->ctllen == 1) && (c == '8'))
+		{
+			ctx->curX = ctx->savCurX;
+			ctx->curY = ctx->savCurY;
+			ctx->ctllen = 0;
+		}
 		else if (ctx->ctllen == 0)
 		{
 			if (c == '\e')
