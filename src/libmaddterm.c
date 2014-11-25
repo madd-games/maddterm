@@ -25,9 +25,16 @@
 */
 
 #include "libmaddterm.h"
-#include <pty.h>
 #include <stdlib.h>
+#include <string.h>
+
+#ifdef __unix__
+#include <pty.h>
 #include <sys/ioctl.h>
+#include <poll.h>
+#include <sys/wait.h>
+#include <signal.h>
+#endif
 
 MTCONTEXT *mtCreateContext(MTPARAMS *params)
 {
@@ -35,15 +42,28 @@ MTCONTEXT *mtCreateContext(MTPARAMS *params)
 	ctx->width = params->width;
 	ctx->height = params->height;
 	ctx->matrix = params->matrix;
-	struct winsize winsz = {.ws_xpixel = params->width, .ws_ypixel = params->height};
-	ctx->pid = forkpty(&ctx->fd, NULL, NULL, &winsz);
-	
-	if (ctx->pid == 0)
+
+	if (params->start != NULL)
 	{
-		// we don't need the terminal structure on the child.
-		free(ctx);
-		params->start();
-		exit(0);
+#ifdef __unix__
+		struct winsize winsz = {.ws_xpixel = params->width, .ws_ypixel = params->height};
+		ctx->pid = forkpty(&ctx->fd, NULL, NULL, &winsz);
+	
+		if (ctx->pid == 0)
+		{
+			// we don't need the terminal structure on the child.
+			free(ctx);
+
+			signal(SIGINT, SIG_DFL);
+			setenv("TERM", "xterm", 1);
+
+			params->start();
+			exit(0);
+		};
+#else
+	free(ctx);
+	return NULL;
+#endif
 	};
 	
 	mtClear(ctx);
@@ -86,7 +106,7 @@ void mtPutChar(MTCONTEXT *ctx, char c)
 {
 	int index = ctx->curY * ctx->width + ctx->curX;
 	ctx->matrix[2*index+0] = c;
-	ctx->matrix[2*index+0] = ctx->curColor;
+	ctx->matrix[2*index+1] = ctx->curColor;
 	
 	ctx->curX++;
 	if (ctx->curX == ctx->width)
@@ -114,14 +134,22 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 		}
 		else if ((ctx->ctllen == 1) && (c == '7'))
 		{
+			// save cursor
 			ctx->savCurX = ctx->curX;
 			ctx->savCurY = ctx->curY;
 			ctx->ctllen = 0;
 		}
 		else if ((ctx->ctllen == 1) && (c == '8'))
 		{
+			// restore cursor
 			ctx->curX = ctx->savCurX;
 			ctx->curY = ctx->savCurY;
+			ctx->ctllen = 0;
+		}
+		else if ((ctx->ctllen == 1) && (c == 'c'))
+		{
+			// full reset
+			mtClear(ctx);
 			ctx->ctllen = 0;
 		}
 		else if (ctx->ctllen == 0)
@@ -131,6 +159,18 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 				strcpy(ctx->ctlbuf, "\e");
 				ctx->ctllen = 1;
 			}
+			else if (c == '\r')
+			{
+				ctx->curX = 0;
+			}
+			else if (c == '\n')
+			{
+				ctx->curY++;
+				if (ctx->curY == ctx->height)
+				{
+					mtScrollPRIV(ctx);
+				};
+			}
 			else
 			{
 				mtPutChar(ctx, c);
@@ -138,3 +178,74 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 		};
 	};
 };
+
+#ifdef __unix__
+void mtUpdate(MTCONTEXT *ctx)
+{
+	struct pollfd fdArray;
+	char *buf = NULL;
+	char *pos;
+	int bytesPeek = 0;
+	size_t bytesWaiting = 0;
+	size_t bytesRead = 0;
+	size_t bytesRemaining = 0;
+	size_t bytesTotal = 0;
+	int retval;
+	int status;
+	int errcpy = 0;
+	pid_t childPid;
+
+	childPid = waitpid(ctx->pid, &status, WNOHANG);
+	if ((childPid == ctx->pid) || (childPid == -1))
+	{
+		ctx->attr |= MT_ATTR_DEAD;
+	};
+
+	fdArray.fd = ctx->fd;
+	fdArray.events = POLLIN;
+
+	retval = poll(&fdArray, 1, 10);
+	if (retval <= 0)
+	{
+		return;
+	};
+
+#ifdef FIONREAD
+	retval = ioctl(ctx->fd, FIONREAD, &bytesPeek);
+#else
+	retval = ioctl(ctx->fd, TIOCINQ, &bytesPeek);
+#endif
+
+	if (retval == -1) return;
+	if (bytesPeek == 0) return;
+
+	bytesWaiting = bytesPeek;
+	bytesRemaining = bytesWaiting;
+
+	buf = (char*) calloc(bytesWaiting+10, sizeof(char));
+	pos = buf;
+
+	do
+	{
+		bytesRead = read(ctx->fd, pos, bytesRemaining);
+		if (bytesRead == -1)
+		{
+			free(buf);
+			return;
+		};
+
+		if (bytesRead <= 0)
+		{
+			break;
+		};
+
+		bytesRemaining -= bytesRead;
+		bytesTotal += bytesRead;
+		pos += bytesRead;
+	} while (bytesRemaining > 0);
+
+	mtWrite(ctx, buf, bytesTotal);
+	free(buf);		
+};
+
+#endif /* __unix__ */

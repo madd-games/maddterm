@@ -28,8 +28,13 @@
 #define LIBMADDTERM_H
 
 #include <inttypes.h>
-#include <sys/types.h>
 #include <stdlib.h>
+
+#ifdef __unix__
+#include <sys/types.h>
+#endif
+
+#define	MT_ATTR_DEAD			1
 
 typedef struct
 {
@@ -46,7 +51,8 @@ typedef struct
 	/**
 	 * Child callback function. This function will be called from inside the child process
 	 * which is controlled by this terminal. It should probably use one of the exec*() functions
-	 * to load an executable such as the shell.
+	 * to load an executable such as the shell. Only available on UNIX; on other systems, it must
+	 * be NULL.
 	 */
 	void (*start)(void);
 } MTPARAMS;
@@ -55,8 +61,11 @@ typedef struct
 {
 	int width, height;
 	uint8_t *matrix;
+
+#ifdef __unix__
 	int fd;			// terminal FD
 	pid_t pid;		// child PID
+#endif
 	int curX, curY;
 	uint8_t curColor;	// current bg/fg.
 	uint32_t attr;		// attributes.
@@ -87,5 +96,16 @@ void mtPutChar(MTCONTEXT *ctx, char c);
  * Write a string to the terminal. Handles all the control sequences too.
  */
 void mtWrite(MTCONTEXT *ctx, const char *data, size_t size);
+
+/** BEGIN UNIX-ONLY PROTOTYPES SECTION **/
+#ifdef __unix__
+
+/**
+ * Update the state of the terminal from the child process.
+ */
+void mtUpdate(MTCONTEXT *ctx);
+
+#endif
+/** END UNIX-ONLY PROTOTYPES SECTION **/
 
 #endif
