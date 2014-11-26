@@ -92,7 +92,7 @@ void mtScrollPRIV(MTCONTEXT *ctx)
 	int i;
 	for (i=0; i<2*ctx->width*(ctx->height-1); i++)
 	{
-		ctx->matrix[i-ctx->width] = ctx->matrix[i];
+		ctx->matrix[i] = ctx->matrix[i+ctx->width];
 	};
 	
 	for (i=ctx->width*(ctx->height-1); i<ctx->width*ctx->height; i++)
@@ -168,6 +168,7 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 				ctx->curY++;
 				if (ctx->curY == ctx->height)
 				{
+					ctx->curY--;
 					mtScrollPRIV(ctx);
 				};
 			}
