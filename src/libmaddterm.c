@@ -43,6 +43,7 @@ MTCONTEXT *mtCreateContext(MTPARAMS *params)
 	ctx->width = params->width;
 	ctx->height = params->height;
 	ctx->matrix = params->matrix;
+	ctx->fd = -1;
 
 	if (params->start != NULL)
 	{
@@ -189,6 +190,12 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 
 void mtDeleteContext(MTCONTEXT *ctx)
 {
+#ifdef __unix__
+	if (ctx->fd != -1)
+	{
+		close(ctx->fd);
+	};
+#endif
 	free(ctx);
 };
 
