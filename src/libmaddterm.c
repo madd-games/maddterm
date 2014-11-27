@@ -180,6 +180,11 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 	};
 };
 
+void mtDeleteContext(MTCONTEXT *ctx)
+{
+	free(ctx);
+};
+
 #ifdef __unix__
 void mtUpdate(MTCONTEXT *ctx)
 {

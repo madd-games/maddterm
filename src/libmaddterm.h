@@ -97,6 +97,11 @@ void mtPutChar(MTCONTEXT *ctx, char c);
  */
 void mtWrite(MTCONTEXT *ctx, const char *data, size_t size);
 
+/**
+ * Deletes a context.
+ */
+void mtDeleteContext(MTCONTEXT *ctx);
+
 /** BEGIN UNIX-ONLY PROTOTYPES SECTION **/
 #ifdef __unix__
 
