@@ -27,6 +27,7 @@
 #include "libmaddterm.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifdef __unix__
 #include <pty.h>
@@ -38,7 +39,7 @@
 
 MTCONTEXT *mtCreateContext(MTPARAMS *params)
 {
-	MTCONTEXT *ctx = (MTCONTEXT*) malloc(sizeof(ctx));
+	MTCONTEXT *ctx = (MTCONTEXT*) malloc(sizeof(MTCONTEXT));
 	ctx->width = params->width;
 	ctx->height = params->height;
 	ctx->matrix = params->matrix;
@@ -105,6 +106,12 @@ void mtScrollPRIV(MTCONTEXT *ctx)
 void mtPutChar(MTCONTEXT *ctx, char c)
 {
 	int index = ctx->curY * ctx->width + ctx->curX;
+	if (index >= (ctx->width * ctx->height))
+	{
+		fprintf(stderr, "[maddterm] out of bound mtPutChar(): (%d, %d)", ctx->curX, ctx->curY);
+		exit(1);
+	};
+
 	ctx->matrix[2*index+0] = c;
 	ctx->matrix[2*index+1] = ctx->curColor;
 	
