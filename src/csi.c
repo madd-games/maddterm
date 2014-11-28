@@ -25,6 +25,7 @@
 */
 
 #include "libmaddterm.h"
+#include <stdio.h>
 
 static void handleCSI_EL(MTCONTEXT *ctx)
 {
@@ -82,6 +83,7 @@ static int isCSI_EL(MTCONTEXT *ctx)
 
 void mtHandleCSIPRIV(MTCONTEXT *ctx)
 {
+	printf("SEQUENCE: %s\n", &ctx->ctlbuf[1]);
 	if (isCSI_EL(ctx))
 	{
 		handleCSI_EL(ctx);
