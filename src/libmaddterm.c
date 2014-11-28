@@ -37,6 +37,8 @@
 #include <signal.h>
 #endif
 
+void mtHandleCSIPRIV(MTCONTEXT *ctx);
+
 MTCONTEXT *mtCreateContext(MTPARAMS *params)
 {
 	MTCONTEXT *ctx = (MTCONTEXT*) malloc(sizeof(MTCONTEXT));
@@ -160,11 +162,29 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 			mtClear(ctx);
 			ctx->ctllen = 0;
 		}
+		else if ((ctx->ctllen == 1) && (c == '['))
+		{
+			// longer control sequences (CSI)
+			ctx->ctlbuf[1] = '[';
+			ctx->ctllen++;
+		}
 		else if ((ctx->ctllen == 1))
 		{
 			// unknown control sequence
 			fprintf(stderr, "maddterm: unknown control sequence, cancelling: ESC %c\n", c);
 			ctx->ctllen = 0;
+		}
+		else if (ctx->ctllen > 1)
+		{
+			// handle longer escape sequences (CSI)
+			if (ctx->ctllen == 32)
+			{
+				fprintf(stderr, "maddterm: control sequence too long\n");
+				ctx->ctllen = 0;
+			};
+
+			ctx->ctlbuf[ctx->ctllen++] = c;
+			mtHandleCSIPRIV(ctx);
 		}
 		else if (ctx->ctllen == 0)
 		{
@@ -198,7 +218,6 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 					};
 
 					ctx->curX--;
-					ctx->matrix[2 * (ctx->curY * ctx->width + ctx->curX)] = 0;
 				};
 			}
 			else
