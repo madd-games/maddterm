@@ -213,6 +213,7 @@ void mtWriteKey(MTCONTEXT *ctx, unsigned int key, unsigned int mods)
 	case MT_KEY_DOWN:	buf = "\e[B";			break;
 	case MT_KEY_RIGHT:	buf = "\e[C";			break;
 	case MT_KEY_LEFT:	buf = "\e[D";			break;
+	case '\b':		buf = "\b";			break;
 	};
 
 	if (buf == NULL)
