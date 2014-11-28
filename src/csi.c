@@ -30,6 +30,8 @@ static void handleCSI_EL(MTCONTEXT *ctx)
 {
 	int startidx, endidx;
 
+	printf("EL: param (%c, %d)\n", ctx->ctlbuf[2], (int) ctx->ctlbuf[2]);
+
 	switch (ctx->ctlbuf[2])
 	{
 	case '1':
