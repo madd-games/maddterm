@@ -75,6 +75,8 @@ static int isCSI_EL(MTCONTEXT *ctx)
 		return 0;
 	};
 
+	printf("PARAM: %c (%d)\n", ctx->ctlbuf[2], (int) ctx->ctlbuf[2]);
+
 	return ((ctx->ctlbuf[2] >= '0') && (ctx->ctlbuf[2] <= 2));
 };
 
