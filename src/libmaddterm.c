@@ -220,6 +220,11 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 					ctx->curX--;
 				};
 			}
+			else if (c == '\a')
+			{
+				// bell
+				fprintf(stderr, "maddterm: caught BEL\n");
+			}
 			else
 			{
 				mtPutChar(ctx, c);
