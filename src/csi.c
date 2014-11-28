@@ -31,8 +31,6 @@ static void handleCSI_EL(MTCONTEXT *ctx)
 {
 	int startidx, endidx;
 
-	printf("EL: param (%c, %d)\n", ctx->ctlbuf[2], (int) ctx->ctlbuf[2]);
-
 	switch (ctx->ctlbuf[2])
 	{
 	case '1':
@@ -61,6 +59,14 @@ static void handleCSI_EL(MTCONTEXT *ctx)
 
 static int isCSI_EL(MTCONTEXT *ctx)
 {
+	if (ctx->ctllen == 3)
+	{
+		if (memcmp(ctx->ctlbuf, "\e[K", 3) == 0)
+		{
+			return 1;
+		};
+	};
+
 	if (ctx->ctllen != 4)
 	{
 		return 0;
@@ -76,14 +82,11 @@ static int isCSI_EL(MTCONTEXT *ctx)
 		return 0;
 	};
 
-	printf("PARAM: %c (%d)\n", ctx->ctlbuf[2], (int) ctx->ctlbuf[2]);
-
 	return ((ctx->ctlbuf[2] >= '0') && (ctx->ctlbuf[2] <= 2));
 };
 
 void mtHandleCSIPRIV(MTCONTEXT *ctx)
 {
-	printf("SEQUENCE: %s\n", &ctx->ctlbuf[1]);
 	if (isCSI_EL(ctx))
 	{
 		handleCSI_EL(ctx);
