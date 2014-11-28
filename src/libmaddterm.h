@@ -34,7 +34,27 @@
 #include <sys/types.h>
 #endif
 
-#define	MT_ATTR_DEAD			1
+#define	MT_ATTR_DEAD				1
+
+/**
+ * Keys.
+ * Those included in ASCII must be passed to mtWriteKey() as the plain ASCII byte,
+ * with all processing (upper case/lower case) already done. Use codes 0x100 and
+ * above for non-ASCII keys.
+ */
+enum
+{
+	MT_KEY_UP				= 0x100,
+	MT_KEY_DOWN				= 0x101,
+	MT_KEY_LEFT				= 0x102,
+	MT_KEY_RIGHT				= 0x103,
+};
+
+/**
+ * Modifiers for mtWriteKey().
+ */
+#define	MT_MOD_SHIFT				1
+#define	MT_MOD_CTRL				2
 
 typedef struct
 {
@@ -96,6 +116,11 @@ void mtPutChar(MTCONTEXT *ctx, char c);
  * Write a string to the terminal. Handles all the control sequences too.
  */
 void mtWrite(MTCONTEXT *ctx, const char *data, size_t size);
+
+/**
+ * Report a key press to the terminal.
+ */
+void mtWriteKey(MTCONTEXT *ctx, unsigned int key, unsigned int mods);
 
 /**
  * Deletes a context.

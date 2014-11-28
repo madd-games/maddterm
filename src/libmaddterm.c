@@ -89,12 +89,12 @@ void mtClear(MTCONTEXT *ctx)
 	};
 };
 
-void mtScrollPRIV(MTCONTEXT *ctx)
+static void mtScrollPRIV(MTCONTEXT *ctx)
 {
 	int i;
 	for (i=0; i<2*ctx->width*(ctx->height-1); i++)
 	{
-		ctx->matrix[i] = ctx->matrix[i+ctx->width];
+		ctx->matrix[i] = ctx->matrix[i+2*ctx->width];
 	};
 	
 	for (i=ctx->width*(ctx->height-1); i<ctx->width*ctx->height; i++)
@@ -180,11 +180,49 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 					mtScrollPRIV(ctx);
 				};
 			}
+			else if (c == '\b')
+			{
+				if ((ctx->curX != 0) || (ctx->curY != 0))
+				{
+					if (ctx->curX == 0)
+					{
+						ctx->curY--;
+						ctx->curX = ctx->width;
+					};
+
+					ctx->curX--;
+					ctx->matrix[2 * (ctx->curY * ctx->width + ctx->curX)] = 0;
+				};
+			}
 			else
 			{
 				mtPutChar(ctx, c);
 			};
 		};
+	};
+};
+
+void mtWriteKey(MTCONTEXT *ctx, unsigned int key, unsigned int mods)
+{
+	char *buf = NULL;
+
+	switch (key)
+	{
+	case '\n':		buf = "\r";			break;
+	case MT_KEY_UP:		buf = "\e[A";			break;
+	case MT_KEY_DOWN:	buf = "\e[B";			break;
+	case MT_KEY_RIGHT:	buf = "\e[C";			break;
+	case MT_KEY_LEFT:	buf = "\e[D";			break;
+	};
+
+	if (buf == NULL)
+	{
+		char c = (char) key;
+		write(ctx->fd, &c, 1);
+	}
+	else
+	{
+		write(ctx->fd, buf, strlen(buf));
 	};
 };
 
