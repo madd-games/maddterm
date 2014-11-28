@@ -166,6 +166,7 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 			{
 				strcpy(ctx->ctlbuf, "\e");
 				ctx->ctllen = 1;
+				fprintf(stderr, "maddterm: got control sequence\n");
 			}
 			else if (c == '\r')
 			{
