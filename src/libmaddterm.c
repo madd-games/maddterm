@@ -160,13 +160,19 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 			mtClear(ctx);
 			ctx->ctllen = 0;
 		}
+		else if ((ctx->ctllen == 1))
+		{
+			// unknown control sequence
+			fprintf(stderr, "maddterm: unknown control sequence, cancelling: ESC %c\n", c);
+			ctx->ctllen = 0;
+		}
 		else if (ctx->ctllen == 0)
 		{
 			if (c == '\e')
 			{
 				strcpy(ctx->ctlbuf, "\e");
 				ctx->ctllen = 1;
-				fprintf(stderr, "maddterm: got control sequence\n");
+				//fprintf(stderr, "maddterm: got control sequence\n");
 			}
 			else if (c == '\r')
 			{
