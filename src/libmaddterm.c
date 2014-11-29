@@ -175,6 +175,12 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 			ctx->ctlbuf[1] = ']';
 			ctx->ctllen++;
 		}
+		else if ((ctx->ctllen == 1) && (c == '\a'))
+		{
+			// clear screen.
+			ctx->ctllen = 0;
+			mtClear(ctx);
+		}
 		else if ((ctx->ctllen == 1))
 		{
 			// unknown control sequence
