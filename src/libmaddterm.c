@@ -69,7 +69,8 @@ MTCONTEXT *mtCreateContext(MTPARAMS *params)
 	return NULL;
 #endif
 	};
-	
+
+	strcpy(ctx->title, "libmaddterm");
 	mtClear(ctx);
 	
 	return ctx;
@@ -168,16 +169,22 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 			ctx->ctlbuf[1] = '[';
 			ctx->ctllen++;
 		}
+		else if ((ctx->ctllen == 1) && (c == ']'))
+		{
+			// xterm control sequences.
+			ctx->ctlbuf[1] = ']';
+			ctx->ctllen++;
+		}
 		else if ((ctx->ctllen == 1))
 		{
 			// unknown control sequence
-			fprintf(stderr, "maddterm: unknown control sequence, cancelling: ESC %c\n", c);
+			fprintf(stderr, "maddterm: unknown control sequence, cancelling: ESC (%c) <%d>\n", c, (int)c);
 			ctx->ctllen = 0;
 		}
 		else if (ctx->ctllen > 1)
 		{
 			// handle longer escape sequences (CSI)
-			if (ctx->ctllen == 32)
+			if (ctx->ctllen == 256)
 			{
 				fprintf(stderr, "maddterm: control sequence too long\n");
 				ctx->ctllen = 0;
@@ -222,8 +229,7 @@ void mtWrite(MTCONTEXT *ctx, const char *data, size_t size)
 			}
 			else if (c == '\a')
 			{
-				// bell
-				fprintf(stderr, "maddterm: caught BEL\n");
+				// bell, ignore
 			}
 			else
 			{

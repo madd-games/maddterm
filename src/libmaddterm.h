@@ -91,9 +91,12 @@ typedef struct
 	uint32_t attr;		// attributes.
 	int savCurX, savCurY;	// saved cursor position.
 	
-	// escpae sequences
-	char ctlbuf[32];
+	// control sequences
+	char ctlbuf[256];
 	int ctllen;		// 0 = no control sequence pending.
+
+	// info
+	char title[256];
 } MTCONTEXT;
 
 /**

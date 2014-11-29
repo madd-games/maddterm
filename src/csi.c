@@ -85,10 +85,62 @@ static int isCSI_EL(MTCONTEXT *ctx)
 	return ((ctx->ctlbuf[2] >= '0') && (ctx->ctlbuf[2] <= 2));
 };
 
+static void toInt(char **seq, int *num)
+{
+	*num = 0;
+	while ((**seq >= '0') && (**seq <= '9'))
+	{
+		*num = (*num) * 10 + (**seq) - '0';
+		(*seq)++;
+	};
+};
+
+static void handleXTermSeq(MTCONTEXT *ctx)
+{
+	int cmd;
+	char *scan = &ctx->ctlbuf[2];
+	toInt(&scan, &cmd);
+
+	if (*scan != ';')
+	{
+		fprintf(stderr, "maddterm: rejecting invalid xterm sequence\n");
+		ctx->ctllen = 0;
+		return;
+	};
+	scan++;
+
+	char *put = ctx->title;
+	while (*scan != '\a')
+	{
+		*put = *scan;
+		put++;
+		scan++;
+	};
+	*put = 0;
+
+	ctx->ctllen = 0;
+};
+
+static int isXTermSeq(MTCONTEXT *ctx)
+{
+	if (ctx->ctllen > 3)
+	{
+		if (ctx->ctlbuf[ctx->ctllen-1] != '\a') return 0;
+		if (ctx->ctlbuf[1] == ']') return 1;
+	};
+
+	return 0;
+};
+
 void mtHandleCSIPRIV(MTCONTEXT *ctx)
 {
 	if (isCSI_EL(ctx))
 	{
 		handleCSI_EL(ctx);
+	};
+
+	if (isXTermSeq(ctx))
+	{
+		handleXTermSeq(ctx);
 	};
 };
