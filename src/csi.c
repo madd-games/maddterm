@@ -95,6 +95,18 @@ static void toInt(char **seq, int *num)
 	};
 };
 
+static void handleXTermTitle(MTCONTEXT *ctx, char *scan)
+{
+	char *put = ctx->title;
+	while (*scan != '\a')
+	{
+		*put = *scan;
+		put++;
+		scan++;
+	};
+	*put = 0;
+};
+
 static void handleXTermSeq(MTCONTEXT *ctx)
 {
 	int cmd;
@@ -109,14 +121,14 @@ static void handleXTermSeq(MTCONTEXT *ctx)
 	};
 	scan++;
 
-	char *put = ctx->title;
-	while (*scan != '\a')
+	switch (cmd)
 	{
-		*put = *scan;
-		put++;
-		scan++;
+	case 0:
+	case 1:
+	case 2:
+		handleXTermTitle(ctx, scan);
+		break;
 	};
-	*put = 0;
 
 	ctx->ctllen = 0;
 };
